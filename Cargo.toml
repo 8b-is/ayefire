@@ -1,0 +1,13 @@
+[package]
+name = "ayefire"
+version = "0.1.0"
+edition = "2021"
+description = "AyeFire — the firewall terminal for Aye: shader-capable, spatial, and with no IP networking (hence no backdoor)."
+
+[[bin]]
+name = "ayefire"
+path = "src/main.rs"
+
+# The AyeFire covenant: no dependencies that bring an IP stack.
+# The terminal speaks to ayeosd over a local unix socket (std::os::unix::net)
+# and nothing else. A back door needs a door; there is none.
