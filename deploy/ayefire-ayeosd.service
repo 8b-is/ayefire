@@ -1,0 +1,23 @@
+[Unit]
+Description=AyeFire local prototype daemon (Unix sockets only)
+
+[Service]
+Type=exec
+ExecStart=%h/.local/libexec/ayefire/ayeosd
+Environment=AYEOSD_SOCK=%t/ayefire/ayeosd.sock
+UnsetEnvironment=AYEOSD_TCP
+RuntimeDirectory=ayefire
+RuntimeDirectoryMode=0700
+UMask=0077
+RestrictAddressFamilies=AF_UNIX
+NoNewPrivileges=true
+Restart=on-failure
+RestartSec=5s
+MemoryMax=256M
+TasksMax=64
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

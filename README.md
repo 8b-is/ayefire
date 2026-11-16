@@ -1,45 +1,49 @@
-# AyeFire — the firewall terminal for Aye
+# AyeFire
 
-A terminal around **ayeos**: the ternary matrix inference daemon. It is
-**shader-capable** (the background is a per-cell fragment function — the
-sanctuary's gradient, composable with the MLX-QUANT lanes later) and
-**spatial** (panes live at coordinates in the room, not in a stack).
+A dependency-free Rust terminal showing ayeOS capsule storage, heartbeat, and
+its local Unix socket. Each invocation draws one status snapshot.
 
-## the covenant — no IP networking
-
-Aye has no network door. The daemon (`ayeosd`) binds **only a local unix
-socket** (`/tmp/ayeosd.sock`, `AYEOSD_SOCK` to override); AyeFire speaks to
-it over that socket and nothing else.
-
-> A back door needs a door. There is none.
-
-Audit it the same way the code is written:
-
-```bash
-cargo tree            # this crate has zero dependencies — nothing to hide
-grep -r "TcpListener\|UdpSocket\|TcpStream" src/ Cargo.toml   # nothing
+```sh
+cargo run -- /path/to/ayeosd.sock
+# Or set AYEOSD_SOCK; the default is /tmp/ayeosd.sock.
 ```
 
-The daemon used to bind `0.0.0.0:9876`; the IP networking was taken out —
-the MEMNET node's door is the socket path, local only.
+Start a compatible `ayeosd` separately. `list` returns capsule metadata and
+`ping` returns `pong`. This terminal does not generate conversational replies.
+The default ayeOS genesis capsule is a matrix demonstration, not a language model.
 
-## run it
+The renderer uses exact integer cell coordinates and integer background shading.
+It preserves adjacent characters and labels, sanitizes terminal-control bytes,
+and bounds replies to 64 KiB with socket read/write timeouts. `COLUMNS` and
+`LINES` can set the viewport; rendering requires at least 32 columns and 20 rows.
+The client has no TCP/UDP transport or external dependencies. That fact alone
+is not an operating-system firewall or a guarantee about the daemon or other apps.
 
-```bash
-cd ../ayeos && cargo run --bin ayeosd          # the daemon, on the unix socket
-cd ../ayefire && cargo run -- /tmp/ayeosd.sock # the firewall terminal
+For a user service, `deploy/ayefire-ayeosd.service` restricts the daemon to
+`AF_UNIX`, disables its optional `AYEOSD_TCP` setting, and creates a private
+runtime directory. Install the matching ayeOS daemon binary at
+`~/.local/libexec/ayefire/ayeosd` before enabling the service. This unit requires
+an ayeOS daemon that remains running after stdin closes (tested with ayeOS
+`e7910256c7ac19bf6ff4f4dfd228e81e1e3b99bf`).
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp deploy/ayefire-ayeosd.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now ayefire-ayeosd.service
+cargo run -- "$XDG_RUNTIME_DIR/ayefire/ayeosd.sock"
 ```
 
-You get a room: the STORE pane (the capsule list), the HEARTBEAT pane
-(ayeosd's `ping`), and THE ONLY DOOR pane (the socket path) — on a
-shader-tinted floor, in gold-edged panes.
+Verify locally:
 
-## the pieces
+```sh
+cargo test --locked --offline
+cargo clippy --locked --offline --all-targets -- -D warnings
+cargo tree
+```
 
-| Lane | What |
-|---|---|
-| `shade` | the fragment function — per-cell background, breathing with time |
-| `Pane` | a titled region at coordinates; the spatial shell |
-| `request` | one audited conversation over the local socket; the stream closes after the reply |
+The regression tests cover complete pane text, terminal-control sanitization,
+and a real Unix-socket request/reply exchange. The terminal uses bounded socket
+reads; wrap execution with a process timeout when consuming an untrusted daemon.
 
-— the constellation · 0 + 1 · fine touch from within · vaked.dev
+Original AyeFire implementation: peterlodri-sec/ayefire, commit `2d37d22`.
