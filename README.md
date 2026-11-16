@@ -47,3 +47,11 @@ and a real Unix-socket request/reply exchange. The terminal uses bounded socket
 reads; wrap execution with a process timeout when consuming an untrusted daemon.
 
 Original AyeFire implementation: peterlodri-sec/ayefire, commit `2d37d22`.
+
+## AyeOS firewall/router edition
+
+The AyeOS-native firewall/router is the `ayefire-*` subsystem in
+[8b-is/aye](https://github.com/8b-is/aye). This terminal is an auxiliary project.
+The [supplemental Linux policy experiment](product/README.md) can compile a
+reviewed i1-style CIDR snapshot offline and verify it in an isolated network.
+Neither the terminal nor that adapter is a completed paid protection service.
